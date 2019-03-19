@@ -1,0 +1,4 @@
+[submodule "META"]
+	path = META
+	url = ./
+	branch = META

@@ -1,0 +1,4 @@
+file  sample-test-1.c
+suite sample-test-1
+test  foo
+test  bar

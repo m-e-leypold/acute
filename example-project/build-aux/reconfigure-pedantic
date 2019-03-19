@@ -1,0 +1,14 @@
+#!/bin/sh
+#
+# Bootstrap a source copy newly checked out from a development
+# version.
+#
+# See also: https://stackoverflow.com/questions/3290908/which-files-generated-by-autotools-should-i-keep-in-version-control-repository
+#
+# The idea is, that there we distinguish ...
+
+make distclean
+CFLAGS="-g -Wall -Werror -Werror -Wpedantic --std=c11 " "$(dirname "$(dirname "$(realpath "$0")")")"/configure
+make clean
+make
+

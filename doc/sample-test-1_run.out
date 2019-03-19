@@ -1,0 +1,15 @@
+1..2
+sample-test-1.c:7: *** EXPECTATION FAILED: y*y == -4 ***
+  in: testsuite().
+
+-- running: foo
+-> done: foo
+not ok 1
+sample-test-1.c:14: *** EXPECTATION FAILED: x*y == x*3 ***
+  in: testsuite(),
+  =>  with: x*y => 4; x*3 => 6.
+.
+
+-- running: bar
+-> done: bar
+not ok 2

@@ -1,0 +1,223 @@
+@comment Permission is granted to copy, distribute and/or modify this document
+@comment under the terms of the GNU Free Documentation License, Version 1.3 or
+@comment any later version published by the Free Software Foundation; with no
+@comment Invariant Sections, with no Front-Cover Texts, and with no Back-Cover
+@comment Texts.  A copy of the license is included in the section entitled
+@comment ``GNU Free Documentation License''.
+
+\input texinfo   @c -*-texinfo-*-
+@comment $Id@w{$}
+@comment %**start of header
+@setfilename acute.info
+@include version.texi
+@settitle GNU Sample @value{VERSION}
+@syncodeindex pg cp
+@comment %**end of header
+@copying
+This manual is for Acute (version @value{VERSION}, @value{UPDATED}),
+which is a c unit testing framework.
+
+Copyright @copyright{} 2019 M E Leypold
+
+@quotation
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.3 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, with no Front-Cover Texts, and with no Back-Cover
+Texts.  A copy of the license is included in the section entitled
+``GNU Free Documentation License''.
+@end quotation
+@end copying
+
+@dircategory Texinfo documentation system
+@direntry
+* sample: (sample)Invoking sample.
+@end direntry
+
+@titlepage
+@title Acute Users Manual 
+@subtitle for version @value{VERSION}, @value{UPDATED}
+@author M E Leypold (@email{acute-bugs@@m-e-leypold.de})
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+
+@contents
+
+@ifnottex
+@node Top
+@top Acute
+
+This manual is for Acute (version @value{VERSION}, @value{UPDATED}).
+@end ifnottex
+
+@menu
+* About Acute::
+* Quick Start Guide::
+* GNU Free Documentation License::
+* Concept Index::
+* File and Function Index::
+@end menu
+
+@node About Acute
+@chapter About Acute
+
+@emph{Acute} is @strong{a}nother @strong{C} @strong{u}nit @strong{t}esting
+@strong{e}nvironment. It is called an @emph{environment} rather than a
+@emph{framework} because calling it a @emph{framework} wouldn't give a cute
+acronym.
+
+The author originally wrote @emph{acute} because he was too lazy
+reading the manuals of the other already existing frameworks, wanted
+to better understand the issues when writing unit testing frameworks
+for C, wanted to try out some nifty ideas for implementing domain
+specific languages as C macros, and all in all thought it was @emph{a cute}
+idea (he still thinks so).
+
+@comment TODO adavantages/disadvantages
+
+@node Quick Start Guide
+@chapter Quick Start Guide
+
+@findex @file{testsuite.h}
+@cindex test suite, quick start
+
+@section Test Organization and Invocation
+
+In @sc{Acute}, tests are organized in test suites. A test suite is a
+program that can either be queried for tests it contains or executed
+to run the tests.
+
+In example, running the test program @file{tests/sample-test-1} from
+the example project as @code{sample-test-1 list} gives us information
+about the suite and tests contained in the suite:
+
+@verbatiminclude sample-test-1_list.out
+
+On the other side running @file{tests/sample-test-1} without argument
+executes the tests and outputs execution traces (logs) and test
+results, the latter in @acronym{TAP, Test Anything Protocol} format:
+
+@verbatiminclude sample-test-1_run.out
+
+@acronym{TAP} is sort of an informal standard and integrates well with
+a number of test harnesses (whose job is to execute multiples test
+programs and collect their results). In the example project it has
+been integrated into an autotools based build system. When @code{make
+check} is executed in the example project, the resulting output will
+be:
+
+@verbatiminclude example-project_make-check.out
+
+The harness collects the information from the @acronym{TAP} format
+output and produces nice summary reports.
+
+For more information on @acronym{TAP}, see
+@url{https://testanything.org}. For more information on integrating
+tests with @acronym{TAP} into autotools based build systems, see the
+automake manual at @url{https://www.gnu.org/software/automake/manual}.
+
+@section Writing Tests
+
+@findex @code{testsuite()}
+@findex @code{test()}
+@findex @file{testsuite.h}
+
+@verbatiminclude sample-test-1.c
+
+As already mentioned, tests are organized in test suites. Test suites
+are C programs with a specific command line interface. To author a
+testsuite, one writes a C program that
+
+@itemize
+@item includes the header @file{acute/testsuite.h},
+@item instead of main has a function @code{void testsuite()} without parameters,
+@item and in @code{testsuite} marks the single tests with the macro @code{test}.
+@end itemize
+
+Since currently Acute is a header-only library, it should be possible
+to compile the program without additional linking requirements. Acute
+itself is written in C11, though, so you'll have to use the compiler
+in a mode that covers at least this language version.
+
+@section The @code{EXPECT} Macro
+
+@findex @code{EXPECT}
+
+Checks (more commonly called ``test assertions'' in other frameworks)
+are expressed with @code{EXPECT} macro. @code{EXPECT} can be used in two
+forms: With one argument and with two arguments.
+
+The one argument form (example: @code{EXPECT( y*y == -4)}) is similar
+to the classic @code{assert}: The argument is supposed to be an
+expression. If the expression evaluates to 0, the check will fail and
+also output an additional error message that contains information
+about the expression and the source code location, but not about the
+operands:
+
+@verbatim
+sample-test-1.c:7: *** EXPECTATION FAILED: y*y == -4 ***
+  in: testsuite().
+@end verbatim
+
+The two argument form (example: @code{EXPECT (int, EQ(x*y,x*3))})
+takes a type name (one of a predefined set) as first argument and a
+special macro expression -- a condition -- as its second argument. The
+type information and the fact that the second argument is a macro
+gives the framework sufficient leeway to evaluate the operands
+seperately and print additional information on the operand values in
+case the comparison fails:
+
+@verbatim
+sample-test-1.c:14: *** EXPECTATION FAILED: x*y == x*3 ***
+  in: testsuite(),
+  =>  with: x*y => 4; x*3 => 6.
+@end verbatim
+
+@section Additional Test Control
+
+Additional macros allow for aborting tests in cases that are not
+easily expressed with simple expressions:
+
+@findex @code{EXPECT_UNREACHABLE}
+@findex @code{TEST_FAIL}
+@findex @code{TEST_OK}
+
+@itemize
+@item @code{EXPECT_UNREACHABLE} -- Unconditionally fails.
+@item @code{TEST_FAIL} -- Unconditionally fail test with a given error message.
+@item @code{TEST_OK} -- Unconditionally pass test.
+@end itemize
+
+@section Test Isolation
+
+Acute runs the single tests in a seperate sub-process of the test
+program. This way changes in data cannot propagate to other tests in
+the same suite and execution errors during tests (e.g. triggered
+assertions) cannot crash the test program.
+
+There is currently no way to turn off the isolation feature -- which
+requires @code{fork} -- so outside of a sufficiently modern
+POSIX@registeredsymbol{} environment Acute will not work in its
+present form.
+
+@cindex test isolation
+
+@comment TODO: @section Compatibility -- c11, POSIX w fork, Visual C probably not.
+@comment TODO: Reference Guide
+
+@node GNU Free Documentation License
+@appendix GNU Free Documentation License
+
+@include fdl.texi
+
+@node Concept Index
+@unnumbered Concept Index
+@printindex cp
+
+@node File and Function Index
+@unnumbered File and Function Index
+@printindex fn
+
+@bye

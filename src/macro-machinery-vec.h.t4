@@ -1,0 +1,95 @@
+dnl  Acute - A C Unit Testing Environment
+dnl  Copyright (C) 2019 M E Leypold
+dnl  
+dnl  This program is free software: you can redistribute it and/or modify
+dnl  it under the terms of the GNU General Public License as published by
+dnl  the Free Software Foundation, either version 3 of the License, or
+dnl  (at your option) any later version.
+dnl  
+dnl  This program is distributed in the hope that it will be useful,
+dnl  but WITHOUT ANY WARRANTY; without even the implied warranty of
+dnl  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+dnl  GNU General Public License for more details.
+dnl  
+dnl  You should have received a copy of the GNU General Public License
+dnl  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+m4_define([VEC_SIZE],10)
+m4_define([t4_arglist],[m4_cond([$2],[0],[],[$2],[1],[$1[]1],[$1[]1][m4_for([ARGINDEX],2,$2,1,[,$1[]ARGINDEX])])])
+m4_define([t4_args_concatenated],[m4_cond([$2],[0],[],[$2],[1],[$1[]1],[$1[]1][m4_for([ARGINDEX],2,$2,1,[ $1[]ARGINDEX])])])
+m4_define([t4_args_zipped],[m4_cond([$3],[0],[],[$3],[1],[$1[]1,$2[]1],[($1[]1,$2[]1)][m4_for([ARGINDEX],2,$3,1,[,($1[]ARGINDEX,$2[]ARGINDEX)])])])
+m4_define([t4_args_prefixed],[m4_cond([$2],[0],[],[$2],[1],[$3 $1[]1],[$3 $1[]1][m4_for([ARGINDEX],2,$2,1,[,$3 $1[]ARGINDEX])])])
+
+m4_define([t4_seq],[m4_cond([$1],[0],[],[$1],[1],[1],[1][m4_for([ARGINDEX],2,$1,1,[,ARGINDEX])])])
+m4_define([t4_repeat],[m4_cond([$2],[0],[],[$2],[1],[$1],[$1[]m4_for([ARGINDEX],2,$2,1,[,$1])])])
+
+m4_divert()dnl
+/* 
+ * Acute - A C Unit Testing Environment
+ * Copyright (C) 2019 M E Leypold
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+#pragma once
+#define ACUTE_MM_VEC_SIZE VEC_SIZE
+[#]define ACUTE_COUNT_ARGS(...) ACUTE_COUNT_ARGS_(__VA_ARGS__,m4_for([COUNT],VEC_SIZE,1,-1,[COUNT,])0)
+[#]define ACUTE_COUNT_ARGS_(t4_arglist([_],VEC_SIZE),N,...) N
+
+
+#define ACUTE_DISPATCH(M,N,...) ACUTE_PASTE_3(M,_,N) (__VA_ARGS__)
+#define ACUTE_PASTE_3(A,B,C)    A##B##C
+#define ACUTE_APPLY(M,...)      M(__VA_ARGS__)
+
+
+m4_define([define_DISPATCH],[#define ACUTE_DISPATCH$1(M,N,...) ACUTE_PASTE$1_3(M,_,N) (__VA_ARGS__)])
+m4_define([define_PASTE],[#define ACUTE_PASTE$1_3(A,B,C)    A##B##C])
+m4_define([define_APPLY],[#define ACUTE_APPLY$1(M,...)      M(__VA_ARGS__)])
+
+m4_for([INDEX],1,10,1,[
+define_DISPATCH(INDEX)
+define_APPLY(INDEX)
+define_PASTE(INDEX)
+])
+
+[#]define ACUTE_REPEAT(M) t4_repeat([M],VEC_SIZE)
+
+#define ACUTE_PAD(P,...) ACUTE_PAD_(ACUTE_COUNT_ARGS(__VA_ARGS__),P,__VA_ARGS__)
+#define ACUTE_PAD_(N,P,...) ACUTE_DISPATCH(ACUTE_PAD,N,P,__VA_ARGS__)
+
+m4_define([define_PAD],[[#define] ACUTE_PAD_[$1][(]P,t4_arglist(A,$1)[)] t4_arglist(A,$1),t4_repeat(P,m4_eval(VEC_SIZE-$1))])
+m4_define([define_TAKE],[[#define] ACUTE_TAKE_[$1][(]t4_arglist(A,$1),...[)] t4_arglist(A,$1)])
+m4_define([define_CONCATENATE],[[#define] ACUTE_CONCATENATE_[$1][(]t4_arglist(A,$1),...[)] t4_args_concatenated(A,$1)])
+
+m4_define([define_UNPACK],[[#define] ACUTE_UNPACK_$1(t4_arglist(A,$1)[)] t4_args_prefixed(A,$1,ACUTE_UNPACK_TUPLE_) ])
+
+m4_for([INDEX],1,VEC_SIZE,1,[
+define_PAD(INDEX)
+define_TAKE(INDEX)
+define_CONCATENATE(INDEX)
+define_UNPACK(INDEX)
+])
+
+
+[#]define ACUTE_VEC_APPLY(t4_arglist([M],VEC_SIZE),t4_arglist([ARG],VEC_SIZE)) \
+          M1(ARG1)m4_for([COUNT],2,VEC_SIZE,1,[, M[]COUNT[(]ARG[]COUNT[)]])
+
+[#]define ACUTE_VEC_PREPEND(t4_arglist([M],VEC_SIZE),t4_arglist([ARG],VEC_SIZE)) \
+          M1 ARG1 m4_for([COUNT],2,VEC_SIZE,1,[, M[]COUNT[ ]ARG[]COUNT[ ]])
+
+[#]define ACUTE_VEC(X) X[]m4_for([COUNT],2,VEC_SIZE,1,[,X])
+
+[#]define ACUTE_VEC_INDICES  t4_seq(VEC_SIZE)
+[#]define ACUTE_ZIP_VECS(t4_arglist([I],VEC_SIZE),t4_arglist([A],VEC_SIZE)) t4_args_zipped([I],[A],VEC_SIZE)
+
+[#]define ACUTE_VEC_SIZE VEC_SIZE

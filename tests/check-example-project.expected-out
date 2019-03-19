@@ -1,0 +1,17 @@
+PASS: an-example-test 1
+PASS: an-example-test 2
+PASS: an-example-test 3
+FAIL: sample-test-1 1
+FAIL: sample-test-1 2
+============================================================================
+Testsuite summary for acute-example-project 
+============================================================================
+# TOTAL: 5
+# PASS:  3
+# SKIP:  0
+# XFAIL: 0
+# FAIL:  2
+# XPASS: 0
+# ERROR: 0
+============================================================================
+See tests/test-suite.log

@@ -1,0 +1,73 @@
+ACUTE = Another C Untit Testing Environment
+===========================================
+
+About
+-----
+
+Acute is _a_nother _C_ _u_nit _t_esting _e_nvironment. It is called an
+"environment" rather than a "framework" because calling it a
+"framework" wouldn't give a cute acronym.
+
+The author originally wrote Acute because he was too lazy reading the
+manuals of the other already existing frameworks, wanted to better
+understand the issues when writing unit testing frameworks for C,
+wanted to try out some nifty ideas for implementing domain specific
+languages as C macros, and all in all thought it was a cute idea (he
+still thinks so).
+
+Copying (Licenses)
+------------------
+
+Acute (the software) is licensed to you under the terms of the GNU
+General Public License as published by the Free Software Foundation,
+either version 3 of the License, or (at your option) any later
+version. For details see the file LICENSE in the distribution.
+
+The manual might be copied and distributed under the terms of the GNU
+Free Documentation License, Version 1.3 or any later version published
+by the Free Software Foundation; with no Invariant Sections, with no
+Front-Cover Texts, and with no Back-Cover Texts.  A copy of the
+license is included in the sub directory 'doc' of the Acute
+distribution.
+
+An Example
+----------
+
+In Acute, tests are organized in test suites. A test suite is a
+program that can either be queried for tests they contain or executed
+to run the tests (for details, see the fine manual).
+
+Tests are organized in test suites. Test suites are C programs with a
+specific command line interface. To author a testsuite, one writes a C
+program that
+
+- includes the header "acute/testsuite.h",
+
+- instead of 'main' has a function 'void testsuite()' without
+  parameters,	    
+
+- in 'testsuite' marks the single tests with the macro 'test'
+
+In example:
+
+    #include "acute/testsuite.h"
+
+    void testsuite(){
+
+      test (foo) {
+	int y = -2;
+	EXPECT( y*y == -4);
+      }
+
+      test (bar) {
+	int x = 2;
+	int y = 2;
+	EXPECT (int, EQ(x*y,x*3));
+
+	float f = 2.0;
+	EXPECT (float, EQ(f*f,5.0));
+      }
+    }
+	
+
+For further details and use of the EXPECT macro, refer to the manual.

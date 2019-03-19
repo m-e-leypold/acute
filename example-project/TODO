@@ -1,0 +1,9 @@
+
+- Mechs to move/copy stuff to source distribution branch: This will
+  depend on the use of git. Consider: master for released source only,
+  release for release with generated files.
+
+  Can be done manually as alternative.
+
+- Add a CHANGELOG.md (format as keepachangelog.org)
+
